@@ -6,7 +6,7 @@ INPUT = [[(0, 0), (4, 1)], [(0, 2), (3, 1)], [(0, 4), (3, 3)], [(1, 2), (4, 2)],
 
 def print_grid(grid):
     for l in grid:
-        print(" ".join(["{:3}".format(i) for i in l]))
+        print(" ".join(["{:3}".format(i) if i >= 0 else "   " for i in l]))
 
 def find_first_undefined_cell(grid):
     """Returns the r,c of the first undefined cell"""
@@ -102,6 +102,147 @@ def check_grid_val(grid, r, c, v):
             and v == grid[r][c-1]):
             return False
 
+    return True
+
+
+def snake_can_reach(grid, v, start, end, grid_start, debug=False):
+    """Returns True if snake of color `v` can go from `start` to `end`"""
+    r,c = start
+    n = max([max(l) for l in grid])
+    h = len(grid)
+    w = len(grid[0])
+    # debug = True
+    if debug:
+        print("snake_can_reach")
+        print(grid_start[v][1][0], grid_start[v][1][1])
+        print("start: ", start)
+        print("end: ", end)
+        print("r, c: ", r, c)
+        print("v: ", v)
+        print(15)
+        print_grid(grid)
+        print(2)
+
+    # We're done!
+    if start == end:
+        return True
+    # We're also done!
+    for tr, tc in [(r, c-1), (r-1, c), (r, c+1), (r+1, c)]:
+        if (tr >= 0 and tr < h and tc >= 0 and tc < w):
+            if (tr, tc) == end:
+                return True
+
+
+    for tr, tc in [(r, c-1), (r-1, c), (r, c+1), (r+1, c)]:
+        if check_grid_snake_val(grid, grid_start, tr, tc, v, ignore_reach=False):
+            grid1 = copy.deepcopy(grid)
+            grid1[tr][tc] = v
+            # print("grid1")
+            # print_grid(grid1)
+            res = snake_can_reach(grid1, v,
+                                  (tr, tc),
+                                  end,
+                                  grid_start)
+            if res:
+                return True
+    return False
+
+
+def check_grid_snake_val(grid, grid_start, r, c, v, ignore_reach=True):
+    """Count the occurences of `v` in the cells adjacent to r,c (not
+    diagonally tho)"""
+    n = max([max(l) for l in grid])
+    h = len(grid)
+    w = len(grid[0])
+    count = 0
+
+    # We're actually INSIDE the grid
+    if not (r >= 0 and r < h and c >= 0 and c < w):
+        return False
+
+    # End of this color
+    if (grid[r][c] == v
+        and (r, c) == grid_start[v][1]):
+
+        # Shouldn't cut off other colors:
+        if ignore_reach:
+            # print("grid:")
+            # print_grid(grid)
+            # print("current: ", v)
+            for i in range(n+1):
+                if i <= v:
+                    continue
+                res = snake_can_reach(grid,
+                                    i,
+                                    grid_start[i][0],
+                                    grid_start[i][1],
+                                    grid_start)
+                if not res:
+                    print("cant reach :", i)
+                    return False
+                print("can reach :", i)
+        return True
+
+    # This cell is already defined
+    if (grid[r][c] >= 0):
+        return False
+
+    # Shouldn't cut off other colors:
+    # if ignore_reach:
+    #     print("grid:")
+    #     print_grid(grid)
+    #     print("current: ", v)
+    #     for i in range(n+1):
+    #         if i <= v:
+    #             continue
+    #         res = snake_can_reach(grid,
+    #                               i,
+    #                               grid_start[i][0],
+    #                               grid_start[i][1],
+    #                               grid_start)
+    #         if not res:
+    #             print("cant reach :", i)
+    #             return False
+    #         print("can reach :", i)
+
+
+    # We're snaking, so the number of adjacent cells of same color must be
+    # exactly one
+    for dx in [-1, 0, 1]:
+        for dy in [-1, 0, 1]:
+            if dx == 0 and dy == 0:
+                continue
+            if r + dx < 0 or r + dx >= w:
+                continue
+            if c + dy < 0 or c + dy >= h:
+                continue
+            if dx == 0 or dy == 0:
+                if (r + dx, c + dy) != grid_start[v][1]:
+                    if grid[r + dx][c + dy] == v:
+                        count += 1
+    return count == 1
+
+def check_grid_snake_val1(grid, r, c, v):
+    """Return the possible values for a cell in the r,c position,
+    keeping in mind to not connect the same color to itself"""
+    if not check_grid_val(grid, r, c, v):
+        return False
+
+    n = max([max(l) for l in grid])
+    h = len(grid)
+    w = len(grid[0])
+    # Horizontal
+    if c > 0 and c < w - 1:
+        if (grid[r][c+1] == v
+            and v == grid[r][c]
+            and v == grid[r][c-1]):
+            return False
+    # Vertical
+    if r > 0 and r < h - 1:
+        if (grid[r+1][c] == v
+            and v == grid[r][c]
+            and v == grid[r-1][c]):
+            return False
     return True
 
 def rekt_count(grid, r, c):
@@ -267,12 +408,16 @@ def iter_solve(grid, grid_start):
             return res
     return None
 
-def iter_snake_solve(grid, grid_start, cur, r, c):
-    print("wowde")
-    print(grid_start[cur][1][0], grid_start[cur][1][1])
-    print(r, c)
-    print(cur)
-    print_grid(grid)
+def iter_snake_solve(grid, grid_start, cur, r, c, debug=False):
+    # debug = True
+    if debug:
+        print("wowde")
+        print(grid_start[cur][1][0], grid_start[cur][1][1])
+        print("r, c: ", r, c)
+        print("cur: ", cur)
+        print(18)
+        print_grid(grid)
+        print(2)
     n = max([max(l) for l in grid])
     h = len(grid)
     w = len(grid[0])
@@ -282,19 +427,22 @@ def iter_snake_solve(grid, grid_start, cur, r, c):
         if cur == n:
             # We're done!
             return grid
-        print("dems!")
         return iter_snake_solve(grid, grid_start, cur+1, grid_start[cur+1][0][0],
                                 grid_start[cur+1][0][1])
 
+    print("Advancing! cur: ", cur)
+    print("grid adv")
+    print_grid(grid)
     # Left
     if c > 0:
         tr = r
         tc = c-1
         # Next cell is undefined or the end for this color
-        if ((grid[tr][tc] < 0 or ((grid[tr][tc] == cur) and (tr, tc) == grid_start[cur][1]))
-            and check_grid_val(grid, tr, tc, cur)):
+        if check_grid_snake_val(grid, grid_start, tr, tc, cur):
             grid1 = copy.deepcopy(grid)
             grid1[tr][tc] = cur
+            print("grid1")
+            print_grid(grid1)
             res = iter_snake_solve(grid1, grid_start,
                                    cur, tr, tc)
             if res is not None:
@@ -303,8 +451,7 @@ def iter_snake_solve(grid, grid_start, cur, r, c):
     if r > 0:
         tr = r-1
         tc = c
-        if ((grid[tr][tc] < 0 or ((grid[tr][tc] == cur) and (tr, tc) == grid_start[cur][1]))
-            and check_grid_val(grid, tr, tc, cur)):
+        if check_grid_snake_val(grid, grid_start, tr, tc, cur):
             grid1 = copy.deepcopy(grid)
             grid1[tr][tc] = cur
             res = iter_snake_solve(grid1, grid_start,
@@ -315,8 +462,7 @@ def iter_snake_solve(grid, grid_start, cur, r, c):
     if c < w - 1:
         tr = r
         tc = c+1
-        if ((grid[tr][tc] < 0 or ((grid[tr][tc] == cur) and (tr, tc) == grid_start[cur][1]))
-            and check_grid_val(grid, tr, tc, cur)):
+        if check_grid_snake_val(grid, grid_start, tr, tc, cur):
             grid1 = copy.deepcopy(grid)
             grid1[tr][tc] = cur
             res = iter_snake_solve(grid1, grid_start,
@@ -327,8 +473,7 @@ def iter_snake_solve(grid, grid_start, cur, r, c):
     if r < h - 1:
         tr = r+1
         tc = c
-        if ((grid[tr][tc] < 0 or ((grid[tr][tc] == cur) and (tr, tc) == grid_start[cur][1]))
-            and check_grid_val(grid, tr, tc, cur)):
+        if check_grid_snake_val(grid, grid_start, tr, tc, cur):
             grid1 = copy.deepcopy(grid)
             grid1[tr][tc] = cur
             res = iter_snake_solve(grid1, grid_start,
@@ -339,7 +484,7 @@ def iter_snake_solve(grid, grid_start, cur, r, c):
 
 
 
-def snake_solve(grid_start, size):
+def solve(grid_start, size):
     # return [[0, 1, 1, 2, 2], [0, 1, 3, 2, 4], [0, 1, 3, 2, 4], [0, 1, 3, 2, 4], [0, 0, 3, 4, 4]]
     tmp = [[-1 for j in range(size[0])] for i in range(size[0])]
     for i,((x1, y1), (x2, y2)) in enumerate(grid_start):
@@ -347,21 +492,13 @@ def snake_solve(grid_start, size):
         tmp[x2][y2] = i
     return iter_snake_solve(tmp, grid_start, 0, grid_start[0][0][0], grid_start[0][0][1])
 
-def solve(grid_start, size):
-    # return [[0, 1, 1, 2, 2], [0, 1, 3, 2, 4], [0, 1, 3, 2, 4], [0, 1, 3, 2, 4], [0, 0, 3, 4, 4]]
-    tmp = [[-1 for j in range(size[0])] for i in range(size[0])]
-    for i,((x1, y1), (x2, y2)) in enumerate(grid_start):
-        tmp[x1][y1] = i
-        tmp[x2][y2] = i
-    return iter_solve(tmp, grid_start)
-
 def main():
     # print(iter_solve([[0, -1, 1, -1, 2], [0, 1, 3, 2, 4], [0, 1, 3, 2, 4], [0, 1, 3, 2, 4], [0, 0, 3, 4, 4]], [[(0, 0), (4, 1)], [(0, 2), (3, 1)], [(0, 4), (3, 3)], [(1, 2), (4, 2)], [(1, 4), (4, 3)]]))
     # if check_grid([[0, 1, 1, 2, 2], [0, 1, 3, 2, 4], [0, 1, 3, 2, 4], [0, 1, 3, 2, 4], [0, 0, 3, 4, 4]], [[(0, 0), (4, 1)], [(0, 2), (3, 1)], [(0, 4), (3, 3)], [(1, 2), (4, 2)], [(1, 4), (4, 3)]]):
     #     print("yes")
     # else:
     #     print("nope")
-    print(snake_solve(INPUT, LEVEL_SIZE))
+    print(solve(INPUT, LEVEL_SIZE))
 
 if __name__ == '__main__':
     main()
