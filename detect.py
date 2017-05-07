@@ -3,6 +3,8 @@
 import cv2
 import numpy as np
 
+import solver
+
 minLineLength = 1000
 maxLineGap = 10
 EPS = 10
@@ -215,15 +217,43 @@ def main():
     for k,v in colors.items():
         print("{}: {},{} {},{}".format(i, v[0][0], v[0][1], v[1][0], v[1][1]))
         i += 1
+    level_size = (len(xs) - 1, len(ys) - 1)
     color_map = []
-    number_grid = []
+    level_init = []
     for k,v in colors.items():
         color_map.append(k)
-        number_grid.append(v)
+        level_init.append(v)
 
     print("wow!")
+    print(level_size)
     print(color_map)
-    print(number_grid)
+    print(level_init)
+
+    # Actually solve the puzzle
+    solution = solver.solve(level_init, level_size)
+
+    print("solution")
+    print(solution)
+    # Display solution
+    # for x,row in enumerate(solution):
+    #     for y,v in enumerate(row):
+    #         cv2.rectangle(img, (ys[y], xs[x]),
+    #                       (ys[y] + 30, xs[x] + 30),
+    #                       color=color_map[v],
+    #                       # color=color_map[v-1],
+    #                       thickness=cv2.FILLED)
+    for r in range(len(xs) - 1):
+        for c in range(len(ys) - 1):
+            hp = 30
+            cx1 = int((xs[r] + xs[r + 1])/2 - hp)
+            cy1 = int((ys[c] + ys[c + 1])/2 - hp)
+            cx2 = int((xs[r] + xs[r + 1])/2 + hp)
+            cy2 = int((ys[c] + ys[c + 1])/2 + hp)
+            cv2.rectangle(img, (cy1, cx1), (cy2, cx2),
+                          color=color_map[solution[r][c]],
+                          thickness=cv2.FILLED)
+
+
 
     show_img(img)
 
