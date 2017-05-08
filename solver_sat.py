@@ -110,111 +110,76 @@ def solve_sat(grid_start, size):
             else:
                 K = 2
             # 4 directions
-            if i > 0and i < rows - 1and j > 0and j < cols - 1:
+            if i > 0 and i < rows - 1 and j > 0 and j < cols - 1:
                 s.add(K ==
                       (If(grid(i, j) == grid(i-1, j), 1, 0)
                            + If(grid(i, j) == grid(i, j+1), 1, 0)
                            + If(grid(i, j) == grid(i+1, j), 1, 0)
                            + If(grid(i, j) == grid(i, j-1), 1, 0)))
             # 3 directions
-            if i > 0and i < rows - 1and j == 0and j < cols - 1:
+            if i > 0 and i < rows - 1 and j == 0 and j < cols - 1:
                 s.add(K ==
                       (If(grid(i, j) == grid(i-1, j), 1, 0)
                            + If(grid(i, j) == grid(i, j+1), 1, 0)
                            + If(grid(i, j) == grid(i+1, j), 1, 0)))
             # 3 directions
-            if i == 0and i < rows - 1and j > 0and j < cols - 1:
+            if i == 0 and i < rows - 1 and j > 0 and j < cols - 1:
                 s.add(K ==
                       (If(grid(i, j) == grid(i, j+1), 1, 0)
                            + If(grid(i, j) == grid(i+1, j), 1, 0)
                            + If(grid(i, j) == grid(i, j-1), 1, 0)))
             # 3 directions
-            if i > 0and i < rows - 1and j > 0and j == cols - 1:
+            if i > 0 and i < rows - 1 and j > 0 and j == cols - 1:
                 s.add(K ==
                       (If(grid(i, j) == grid(i+1, j), 1, 0)
                            + If(grid(i, j) == grid(i, j-1), 1, 0)
                            + If(grid(i, j) == grid(i-1, j), 1, 0)))
             # 3 directions
-            if i > 0and i == rows - 1and j > 0and j < cols - 1:
+            if i > 0 and i == rows - 1 and j > 0 and j < cols - 1:
                 s.add(K ==
                       (If(grid(i, j) == grid(i, j-1), 1, 0)
                            + If(grid(i, j) == grid(i-1, j), 1, 0)
                            + If(grid(i, j) == grid(i, j+1), 1, 0)))
             # 2 directions
-            if i > 0and i == rows - 1and j == 0and j < cols - 1:
+            if i > 0 and i == rows - 1 and j == 0 and j < cols - 1:
                 s.add(K ==
                       (If(grid(i, j) == grid(i-1, j), 1, 0)
                            + If(grid(i, j) == grid(i, j+1), 1, 0)))
             # 2 directions
-            if i == 0and i < rows - 1and j == 0and j < cols - 1:
+            if i == 0 and i < rows - 1 and j == 0 and j < cols - 1:
                 s.add(K ==
                       (If(grid(i, j) == grid(i, j+1), 1, 0)
                            + If(grid(i, j) == grid(i+1, j), 1, 0)))
             # 2 directions
-            if i == 0and i < rows - 1and j > 0and j == cols - 1:
+            if i == 0 and i < rows - 1 and j > 0 and j == cols - 1:
                 s.add(K ==
                       (If(grid(i, j) == grid(i+1, j), 1, 0)
                            + If(grid(i, j) == grid(i, j-1), 1, 0)))
             # 2 directions
-            if i > 0and i == rows - 1and j > 0and j == cols - 1:
+            if i > 0 and i == rows - 1 and j > 0 and j == cols - 1:
                 s.add(K ==
                       (If(grid(i, j) == grid(i, j-1), 1, 0)
                            + If(grid(i, j) == grid(i-1, j), 1, 0)))
 
-
-
-
-
-
-
-
-
-
-
-
     if s.check() == unsat:
         print()
         print("UNSAT")
-        print()
-        core = s.unsat_core()
-        # print(core)
-        # for e in core:
-        #     print(m[str(e)])
+        print(core)
         return None
 
     m = s.model()
-    # for i in range(size[0]):
-    #     print([m.evaluate(grid(i, j)) for j in range(size[1])])
-    #     # for j in range(size[1]):
-    #     #     # print(s.model())
-
-
-    print(m.evaluate(grid(2, 2)))
-    print(m.evaluate(grid(1, 2)))
-    print(m.evaluate(grid(1, 3)))
-    print(m.evaluate(grid(2, 3)))
     return [[m.evaluate(grid(i, j)).as_long() for j in range(size[1])] for i in range(size[0])]
 
 def main():
-    # print(iter_solve([[0, -1, 1, -1, 2], [0, 1, 3, 2, 4], [0, 1, 3, 2, 4], [0, 1, 3, 2, 4], [0, 0, 3, 4, 4]], [[(0, 0), (4, 1)], [(0, 2), (3, 1)], [(0, 4), (3, 3)], [(1, 2), (4, 2)], [(1, 4), (4, 3)]]))
-    # if check_grid([[0, 1, 1, 2, 2], [0, 1, 3, 2, 4], [0, 1, 3, 2, 4], [0, 1, 3, 2, 4], [0, 0, 3, 4, 4]], [[(0, 0), (4, 1)], [(0, 2), (3, 1)], [(0, 4), (3, 3)], [(1, 2), (4, 2)], [(1, 4), (4, 3)]]):
-    #     print("yes")
-    # else:
-    #     print("nope")
-    # print(solve(INPUT, LEVEL_SIZE))
+    # TODO: Check Tetris configurations
+    # TODO: Check for Loops
+
     sol = solve_sat(INPUT, LEVEL_SIZE)
     if not sol:
         print("Goddammit UNSAT!")
         return
     for i in range(len(sol)):
         print([sol[i][j] for j in range(len(sol[0]))])
-
-    # x = z3.Int("x")
-    # y = z3.Int("y")
-    # x = Int("x")
-    # y = z3.Int("y")
-    # # f (Int, Int) -> Int
-    # z3.solve(f(x, 0) == x, f(0, y) == y)
 
 if __name__ == '__main__':
     main()
