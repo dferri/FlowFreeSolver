@@ -1,26 +1,23 @@
 #!/usr/bin/env python3
+
 import copy
+import sys
 from z3 import *
 
 # Initialize z3
 z3.init("/usr/lib/python3.6/site-packages/z3")
 
-LEVEL_SIZE = (5, 5)
-INPUT = [[(0, 0), (4, 1)], [(0, 2), (3, 1)], [(0, 4), (3, 3)], [(1, 2), (4, 2)], [(1, 4), (4, 3)]]
-
 def print_grid(grid):
     for l in grid:
         print(" ".join(["{:3}".format(i) if i >= 0 else "   " for i in l]))
 
-def solve_sat(grid_start, size):
+def solve_sat(grid_start, size, debug=False):
     """Solves the puzzle using Z3"""
     r, c = Ints("r c")
     rows, cols = size
     n = len(grid_start)
     grid = Function("grid", IntSort(), IntSort(), IntSort())
-    # # z3.solve(f(f(x)) == x, f(x) == y, x!=y)
     s = Solver()
-    # s.add(ForAll([r, c], f(r, c) >  0))
 
     # Defined only inside the grid and values in the right range
     s.add(ForAll([r, c], Implies(And(r >= 0, r < rows,
@@ -30,7 +27,6 @@ def solve_sat(grid_start, size):
     s.add(ForAll([r, c], Implies(Or(r < 0, r >= size[0],
                                     c < 0, c >= size[1]),
                                  grid(r, c) == -1)))
-    print(grid_start)
     for i, ((x1, y1), (x2, y2)) in enumerate(grid_start):
         s.add(grid(x1, y1) == i)
         s.add(grid(x2, y2) == i)
@@ -162,9 +158,11 @@ def solve_sat(grid_start, size):
                            + If(grid(i, j) == grid(i-1, j), 1, 0)))
 
     if s.check() == unsat:
-        print()
-        print("UNSAT")
-        print(core)
+        if debug:
+            print()
+            print("UNSAT")
+            for e in s.unsat_core():
+                print(e)
         return None
 
     m = s.model()
@@ -174,10 +172,12 @@ def main():
     # TODO: Check Tetris configurations
     # TODO: Check for Loops
 
+    LEVEL_SIZE = (5, 5)
+    INPUT = [[(0, 0), (4, 1)], [(0, 2), (3, 1)], [(0, 4), (3, 3)], [(1, 2), (4, 2)], [(1, 4), (4, 3)]]
     sol = solve_sat(INPUT, LEVEL_SIZE)
     if not sol:
-        print("Goddammit UNSAT!")
-        return
+        print("UNSAT!")
+        sys.exit(1)
     for i in range(len(sol)):
         print([sol[i][j] for j in range(len(sol[0]))])
 
