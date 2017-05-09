@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 
+import argparse
+import sys
+
 import cv2
 import numpy as np
 
 import solver
+import solver_sat
 
 minLineLength = 1000
 maxLineGap = 10
@@ -11,11 +15,13 @@ EPS = 10
 COLOR_EPS = 60
 
 def show_img(img, width=400, height=800):
-    """Display the image in a window of `width`x`height` (default 400x800)"""
+    """Display the image in a window of `width`x`height` (default 400x800)
+    and save at full resolution in /tmp/flow_tmp.png"""
+    cv2.imwrite("/tmp/flow_tmp.png", img)
+
     img = cv2.resize(img, (width, height))
     while True:
         cv2.imshow("wow", img)
-        cv2.resizeWindow
         k = cv2.waitKey(0)
         if k == 27 or k == 113:    # wait for ESC or 'q' key to exit
             cv2.destroyAllWindows()
@@ -120,8 +126,6 @@ def find_colors(img, gray, xs, ys):
             cx2 = min(int((x1 + x2)/2 + 10), w)
             cy2 = min(int((y1 + y2)/2 + 10), h)
             col = cv2.mean(img[cx1:cx2, cy1:cy2])
-            cv2.rectangle(img, (y1, x1),
-                            (y1 + 20, x1 + 20), col, cv2.FILLED)
             colors.append((col, (r, c)))
     ret = {}
     for ((r, g, b, a), (x, y)) in colors:
@@ -139,12 +143,21 @@ def find_colors(img, gray, xs, ys):
 
 
 def main():
-    img = cv2.imread("./img/13.png")
-    img = cv2.imread("./img/5.png")
+    parser = argparse.ArgumentParser(
+        description="Detect a FlowFree grid from a screenshot and solves it ")
+    parser.add_argument("--no-solve",
+                        action="store_true",
+                        help="Just print the grid, do not solve it")
+    parser.add_argument("img_path",
+                        help="Path to the screenshot")
+    args = parser.parse_args()
+
+    img = cv2.imread(args.img_path)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     edges = cv2.Canny(gray, 50, 100, apertureSize = 3)
 
-    lines = cv2.HoughLinesP(edges, 1, np.pi/180, 100, minLineLength=minLineLength, maxLineGap=maxLineGap)
+    lines = cv2.HoughLinesP(edges, 1, np.pi/180, 100,
+                            minLineLength=minLineLength, maxLineGap=maxLineGap)
     # Reformat the lines list
     lines = [line[0] for line in lines]
 
@@ -157,7 +170,6 @@ def main():
     colors = find_colors(img, gray, xs, ys)
     i = 0
     for k,v in colors.items():
-        print("{}: {},{} {},{}".format(i, v[0][0], v[0][1], v[1][0], v[1][1]))
         i += 1
     level_size = (len(xs) - 1, len(ys) - 1)
     color_map = []
@@ -165,14 +177,25 @@ def main():
     for k,v in colors.items():
         color_map.append(k)
         level_init.append(v)
+        if len(v) != 2:
+            print("Failed to detect a proper grid!")
+            print("Grid start:")
+            for l in level_init:
+                print(l)
+            sys.exit(1)
+
+    print(level_size)
+    print(level_init)
+    if args.no_solve:
+        sys.exit(0)
 
     # Actually solve the puzzle
-    solution = solver.solve(level_init, level_size)
-    # print(level_size)
-    # print(color_map)
-    # print(level_init)
-    # print(solution)
+    # solution = solver.solve(level_init, level_size)
+    solution = solver_sat.solve_sat(level_init, level_size)
+    print()
+    print(solution)
 
+    start_points = [a for couple in level_init for a in couple]
     # Display solution
     for r in range(len(xs) - 1):
         for c in range(len(ys) - 1):
@@ -181,6 +204,8 @@ def main():
             cy1 = int((ys[c] + ys[c + 1])/2 - hp)
             cx2 = int((xs[r] + xs[r + 1])/2 + hp)
             cy2 = int((ys[c] + ys[c + 1])/2 + hp)
+            if (r, c) in start_points:
+                continue
             cv2.rectangle(img, (cy1, cx1), (cy2, cx2),
                           color=color_map[solution[r][c]],
                           thickness=cv2.FILLED)
