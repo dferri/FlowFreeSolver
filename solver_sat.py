@@ -46,53 +46,69 @@ def solve_sat(grid_start, size, debug=False):
 
 
     # Top
-    s.add(ForAll([r, c],
-                 Implies(And(r > 0, r < rows, c > 0, c < cols - 1),
-                         Not(And(grid(r, c) == grid(r-1, c-1),
-                                 grid(r, c) == grid(r-1, c),
-                                 grid(r, c) == grid(r-1, c+1))))))
+    s.assert_and_track(
+        ForAll([r, c],
+               Implies(And(r > 0, r < rows, c > 0, c < cols - 1),
+                       Not(And(grid(r, c) == grid(r-1, c-1),
+                               grid(r, c) == grid(r-1, c  ),
+                               grid(r, c) == grid(r-1, c+1))))),
+        "Top")
     # Top Right
-    s.add(ForAll([r, c],
-                 Implies(And(r > 0, r < rows, c >= 0, c < cols - 1),
-                         Not(And(grid(r, c) == grid(r-1, c),
-                                 grid(r, c) == grid(r-1, c+1),
-                                 grid(r, c) == grid(r, c+1))))))
+    s.assert_and_track(
+        ForAll([r, c],
+               Implies(And(r > 0, r < rows, c >= 0, c < cols - 1),
+                       Not(And(grid(r, c) == grid(r-1, c  ),
+                               grid(r, c) == grid(r-1, c+1),
+                               grid(r, c) == grid(r  , c+1))))),
+        "Top Right")
     # Right
-    s.add(ForAll([r, c],
-                 Implies(And(r > 0, r < rows - 1, c >= 0, c < cols - 1),
-                         Not(And(grid(r, c) == grid(r-1, c+1),
-                                 grid(r, c) == grid(r, c+1),
-                                 grid(r, c) == grid(r+1, c+1))))))
+    s.assert_and_track(
+        ForAll([r, c],
+               Implies(And(r > 0, r < rows - 1, c >= 0, c < cols - 1),
+                       Not(And(grid(r, c) == grid(r-1, c+1),
+                               grid(r, c) == grid(r  , c+1),
+                               grid(r, c) == grid(r+1, c+1))))),
+        "Right")
     # Bottom Right
-    s.add(ForAll([r, c],
-                 Implies(And(r >= 0, r < rows - 1, c >= 0, c < cols - 1),
-                         Not(And(grid(r, c) == grid(r, c+1),
-                                 grid(r, c) == grid(r+1, c+1),
-                                 grid(r, c) == grid(r+1, c))))))
+    s.assert_and_track(
+        ForAll([r, c],
+               Implies(And(r >= 0, r < rows - 1, c >= 0, c < cols - 1),
+                       Not(And(grid(r, c) == grid(r  , c+1),
+                               grid(r, c) == grid(r+1, c+1),
+                               grid(r, c) == grid(r+1, c  ))))),
+        "Bottom Right")
     # Bottom
-    s.add(ForAll([r, c],
-                 Implies(And(r >= 0, r < rows - 1, c > 0, c < cols - 1),
-                         Not(And(grid(r, c) == grid(r+1, c+1),
-                                 grid(r, c) == grid(r+1, c),
-                                 grid(r, c) == grid(r+1, c-1))))))
+    s.assert_and_track(
+        ForAll([r, c],
+               Implies(And(r >= 0, r < rows - 1, c > 0, c < cols - 1),
+                       Not(And(grid(r, c) == grid(r+1, c+1),
+                               grid(r, c) == grid(r+1, c  ),
+                               grid(r, c) == grid(r+1, c-1))))),
+        "Bottom")
     # Bottom Left
-    s.add(ForAll([r, c],
-                 Implies(And(r >= 0, r < rows - 1, c > 0, c < cols),
-                         Not(And(grid(r, c) == grid(r+1, c),
-                                 grid(r, c) == grid(r+1, c-1),
-                                 grid(r, c) == grid(r, c-1))))))
+    s.assert_and_track(
+        ForAll([r, c],
+               Implies(And(r >= 0, r < rows - 1, c > 0, c < cols),
+                       Not(And(grid(r, c) == grid(r+1, c  ),
+                               grid(r, c) == grid(r+1, c-1),
+                               grid(r, c) == grid(r  , c-1))))),
+        "Bottom Left")
     # Left
-    s.add(ForAll([r, c],
-                 Implies(And(r > 0, r < rows - 1, c > 0, c < cols),
-                         Not(And(grid(r, c) == grid(r+1, c-1),
-                                 grid(r, c) == grid(r, c-1),
-                                 grid(r, c) == grid(r-1, c-1))))))
+    s.assert_and_track(
+        ForAll([r, c],
+               Implies(And(r > 0, r < rows - 1, c > 0, c < cols),
+                       Not(And(grid(r, c) == grid(r+1, c-1),
+                               grid(r, c) == grid(r  , c-1),
+                               grid(r, c) == grid(r-1, c-1))))),
+        "Left")
     # Top Left
-    s.add(ForAll([r, c],
-                 Implies(And(r > 0, r < rows, c > 0, c < cols),
-                         Not(And(grid(r, c) == grid(r, c-1),
-                                 grid(r, c) == grid(r-1, c-1),
-                                 grid(r, c) == grid(r-1, c))))))
+    s.assert_and_track(
+        ForAll([r, c],
+               Implies(And(r > 0, r < rows, c > 0, c < cols),
+                       Not(And(grid(r, c) == grid(r  , c-1),
+                               grid(r, c) == grid(r-1, c-1),
+                               grid(r, c) == grid(r-1, c  ))))),
+        "Top Left")
 
 
 
@@ -105,57 +121,75 @@ def solve_sat(grid_start, size, debug=False):
                 K = 1
             else:
                 K = 2
-            # 4 directions
+            # 4 directions 4_0
             if i > 0 and i < rows - 1 and j > 0 and j < cols - 1:
-                s.add(K ==
-                      (If(grid(i, j) == grid(i-1, j), 1, 0)
-                           + If(grid(i, j) == grid(i, j+1), 1, 0)
-                           + If(grid(i, j) == grid(i+1, j), 1, 0)
-                           + If(grid(i, j) == grid(i, j-1), 1, 0)))
-            # 3 directions
+                s.assert_and_track(
+                    K ==
+                      (  If(grid(i, j) == grid(i-1, j  ), 1, 0)
+                       + If(grid(i, j) == grid(i  , j+1), 1, 0)
+                       + If(grid(i, j) == grid(i+1, j  ), 1, 0)
+                       + If(grid(i, j) == grid(i  , j-1), 1, 0)),
+                    "dir_4_0_K_i_j_{}_{}_{}".format(K, i, j))
+            # 3 directions 3_1
             if i > 0 and i < rows - 1 and j == 0 and j < cols - 1:
-                s.add(K ==
-                      (If(grid(i, j) == grid(i-1, j), 1, 0)
-                           + If(grid(i, j) == grid(i, j+1), 1, 0)
-                           + If(grid(i, j) == grid(i+1, j), 1, 0)))
-            # 3 directions
+                s.assert_and_track(
+                    K ==
+                      (  If(grid(i, j) == grid(i-1, j  ), 1, 0)
+                       + If(grid(i, j) == grid(i  , j+1), 1, 0)
+                       + If(grid(i, j) == grid(i+1, j  ), 1, 0)),
+                    "dir_3_1_K_i_j_{}_{}_{}".format(K, i, j))
+            # 3 directions 3_2
             if i == 0 and i < rows - 1 and j > 0 and j < cols - 1:
-                s.add(K ==
-                      (If(grid(i, j) == grid(i, j+1), 1, 0)
-                           + If(grid(i, j) == grid(i+1, j), 1, 0)
-                           + If(grid(i, j) == grid(i, j-1), 1, 0)))
-            # 3 directions
+                s.assert_and_track(
+                    K ==
+                      (  If(grid(i, j) == grid(i  , j+1), 1, 0)
+                       + If(grid(i, j) == grid(i+1, j  ), 1, 0)
+                       + If(grid(i, j) == grid(i  , j-1), 1, 0)),
+                    "dir_3_2_K_i_j_{}_{}_{}".format(K, i, j))
+            # 3 directions 3_3
             if i > 0 and i < rows - 1 and j > 0 and j == cols - 1:
-                s.add(K ==
-                      (If(grid(i, j) == grid(i+1, j), 1, 0)
-                           + If(grid(i, j) == grid(i, j-1), 1, 0)
-                           + If(grid(i, j) == grid(i-1, j), 1, 0)))
-            # 3 directions
+                s.assert_and_track(
+                    K ==
+                      (  If(grid(i, j) == grid(i+1, j  ), 1, 0)
+                       + If(grid(i, j) == grid(i  , j-1), 1, 0)
+                       + If(grid(i, j) == grid(i-1, j  ), 1, 0)),
+                    "dir_3_3_K_i_j_{}_{}_{}".format(K, i, j))
+            # 3 directions 3_4
             if i > 0 and i == rows - 1 and j > 0 and j < cols - 1:
-                s.add(K ==
-                      (If(grid(i, j) == grid(i, j-1), 1, 0)
-                           + If(grid(i, j) == grid(i-1, j), 1, 0)
-                           + If(grid(i, j) == grid(i, j+1), 1, 0)))
-            # 2 directions
+                s.assert_and_track(
+                    K ==
+                      (  If(grid(i, j) == grid(i  , j-1), 1, 0)
+                       + If(grid(i, j) == grid(i-1, j  ), 1, 0)
+                       + If(grid(i, j) == grid(i  , j+1), 1, 0)),
+                    "dir_3_4_K_i_j_{}_{}_{}".format(K, i, j))
+            # 2 directions 2_5
             if i > 0 and i == rows - 1 and j == 0 and j < cols - 1:
-                s.add(K ==
-                      (If(grid(i, j) == grid(i-1, j), 1, 0)
-                           + If(grid(i, j) == grid(i, j+1), 1, 0)))
-            # 2 directions
+                s.assert_and_track(
+                    K ==
+                      (  If(grid(i, j) == grid(i-1, j  ), 1, 0)
+                       + If(grid(i, j) == grid(i  , j+1), 1, 0)),
+                    "dir_2_5_K_i_j_{}_{}_{}".format(K, i, j))
+            # 2 directions 2_6
             if i == 0 and i < rows - 1 and j == 0 and j < cols - 1:
-                s.add(K ==
-                      (If(grid(i, j) == grid(i, j+1), 1, 0)
-                           + If(grid(i, j) == grid(i+1, j), 1, 0)))
-            # 2 directions
+                s.assert_and_track(
+                    K ==
+                      (  If(grid(i, j) == grid(i  , j+1), 1, 0)
+                       + If(grid(i, j) == grid(i+1, j  ), 1, 0)),
+                    "dir_2_6_K_i_j_{}_{}_{}".format(K, i, j))
+            # 2 directions 2_7
             if i == 0 and i < rows - 1 and j > 0 and j == cols - 1:
-                s.add(K ==
-                      (If(grid(i, j) == grid(i+1, j), 1, 0)
-                           + If(grid(i, j) == grid(i, j-1), 1, 0)))
-            # 2 directions
+                s.assert_and_track(
+                    K ==
+                      (  If(grid(i, j) == grid(i+1, j  ), 1, 0)
+                       + If(grid(i, j) == grid(i  , j-1), 1, 0)),
+                    "dir_2_7_K_i_j_{}_{}_{}".format(K, i, j))
+            # 2 directions 2_8
             if i > 0 and i == rows - 1 and j > 0 and j == cols - 1:
-                s.add(K ==
-                      (If(grid(i, j) == grid(i, j-1), 1, 0)
-                           + If(grid(i, j) == grid(i-1, j), 1, 0)))
+                s.assert_and_track(
+                    K ==
+                      (  If(grid(i, j) == grid(i  , j-1), 1, 0)
+                       + If(grid(i, j) == grid(i-1, j  ), 1, 0)),
+                    "dir_2_8_K_i_j_{}_{}_{}".format(K, i, j))
 
     if s.check() == unsat:
         if debug:

@@ -187,11 +187,17 @@ def main():
     print(level_size)
     print(level_init)
     if args.no_solve:
-        sys.exit(0)
+        return
 
     # Actually solve the puzzle
     # solution = solver.solve(level_init, level_size)
     solution = solver_sat.solve_sat(level_init, level_size)
+
+    # No solution found
+    if not solution:
+        print("No solution found!")
+        sys.exit(0)
+
     print()
     print(solution)
 
