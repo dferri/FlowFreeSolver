@@ -129,7 +129,7 @@ def solve_sat(grid_start, size, debug=False):
                        + If(grid(i, j) == grid(i  , j+1), 1, 0)
                        + If(grid(i, j) == grid(i+1, j  ), 1, 0)
                        + If(grid(i, j) == grid(i  , j-1), 1, 0)),
-                    "dir_4_0_K_i_j_{}_{}_{}".format(K, i, j))
+                    "dir_4_0_K_{}_i_j_{}_{}".format(K, i, j))
             # 3 directions 3_1
             if i > 0 and i < rows - 1 and j == 0 and j < cols - 1:
                 s.assert_and_track(
@@ -137,7 +137,7 @@ def solve_sat(grid_start, size, debug=False):
                       (  If(grid(i, j) == grid(i-1, j  ), 1, 0)
                        + If(grid(i, j) == grid(i  , j+1), 1, 0)
                        + If(grid(i, j) == grid(i+1, j  ), 1, 0)),
-                    "dir_3_1_K_i_j_{}_{}_{}".format(K, i, j))
+                    "dir_3_1_K_{}_i_j_{}_{}".format(K, i, j))
             # 3 directions 3_2
             if i == 0 and i < rows - 1 and j > 0 and j < cols - 1:
                 s.assert_and_track(
@@ -145,7 +145,7 @@ def solve_sat(grid_start, size, debug=False):
                       (  If(grid(i, j) == grid(i  , j+1), 1, 0)
                        + If(grid(i, j) == grid(i+1, j  ), 1, 0)
                        + If(grid(i, j) == grid(i  , j-1), 1, 0)),
-                    "dir_3_2_K_i_j_{}_{}_{}".format(K, i, j))
+                    "dir_3_2_K_{}_i_j_{}_{}".format(K, i, j))
             # 3 directions 3_3
             if i > 0 and i < rows - 1 and j > 0 and j == cols - 1:
                 s.assert_and_track(
@@ -153,7 +153,7 @@ def solve_sat(grid_start, size, debug=False):
                       (  If(grid(i, j) == grid(i+1, j  ), 1, 0)
                        + If(grid(i, j) == grid(i  , j-1), 1, 0)
                        + If(grid(i, j) == grid(i-1, j  ), 1, 0)),
-                    "dir_3_3_K_i_j_{}_{}_{}".format(K, i, j))
+                    "dir_3_3_K_{}_i_j_{}_{}".format(K, i, j))
             # 3 directions 3_4
             if i > 0 and i == rows - 1 and j > 0 and j < cols - 1:
                 s.assert_and_track(
@@ -161,35 +161,35 @@ def solve_sat(grid_start, size, debug=False):
                       (  If(grid(i, j) == grid(i  , j-1), 1, 0)
                        + If(grid(i, j) == grid(i-1, j  ), 1, 0)
                        + If(grid(i, j) == grid(i  , j+1), 1, 0)),
-                    "dir_3_4_K_i_j_{}_{}_{}".format(K, i, j))
+                    "dir_3_4_K_{}_i_j_{}_{}".format(K, i, j))
             # 2 directions 2_5
             if i > 0 and i == rows - 1 and j == 0 and j < cols - 1:
                 s.assert_and_track(
                     K ==
                       (  If(grid(i, j) == grid(i-1, j  ), 1, 0)
                        + If(grid(i, j) == grid(i  , j+1), 1, 0)),
-                    "dir_2_5_K_i_j_{}_{}_{}".format(K, i, j))
+                    "dir_2_5_K_{}_i_j_{}_{}".format(K, i, j))
             # 2 directions 2_6
             if i == 0 and i < rows - 1 and j == 0 and j < cols - 1:
                 s.assert_and_track(
                     K ==
                       (  If(grid(i, j) == grid(i  , j+1), 1, 0)
                        + If(grid(i, j) == grid(i+1, j  ), 1, 0)),
-                    "dir_2_6_K_i_j_{}_{}_{}".format(K, i, j))
+                    "dir_2_6_K_{}_i_j_{}_{}".format(K, i, j))
             # 2 directions 2_7
             if i == 0 and i < rows - 1 and j > 0 and j == cols - 1:
                 s.assert_and_track(
                     K ==
                       (  If(grid(i, j) == grid(i+1, j  ), 1, 0)
                        + If(grid(i, j) == grid(i  , j-1), 1, 0)),
-                    "dir_2_7_K_i_j_{}_{}_{}".format(K, i, j))
+                    "dir_2_7_K_{}_i_j_{}_{}".format(K, i, j))
             # 2 directions 2_8
             if i > 0 and i == rows - 1 and j > 0 and j == cols - 1:
                 s.assert_and_track(
                     K ==
                       (  If(grid(i, j) == grid(i  , j-1), 1, 0)
                        + If(grid(i, j) == grid(i-1, j  ), 1, 0)),
-                    "dir_2_8_K_i_j_{}_{}_{}".format(K, i, j))
+                    "dir_2_8_K_{}_i_j_{}_{}".format(K, i, j))
 
     if s.check() == unsat:
         if debug:
