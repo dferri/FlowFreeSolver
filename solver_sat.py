@@ -203,7 +203,6 @@ def solve_sat(grid_start, size, debug=False):
     return [[m.evaluate(grid(i, j)).as_long() for j in range(size[1])] for i in range(size[0])]
 
 def main():
-    # TODO: Check Tetris configurations
     # TODO: Check for Loops
 
     LEVEL_SIZE = (5, 5)
