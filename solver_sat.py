@@ -146,14 +146,14 @@ def solve_sat(grid_start, size, debug=False):
         s.add(flow(x1, y1) == 0)
 
     # For every cell that is not a starting point there must be two adjacent
-    # cells with decreasing and increasing value respectively
+    # non diagonal cells with decreasing and increasing value respectively
     for i in range(rows):
         for j in range(cols):
             if (i, j) in start_points:
                 s.assert_and_track(
                     Exists(
                         [dx1, dy1],
-                        And(# Adjacent cell
+                        And(# Adjacent orthogonal cell
                             Or((dx1 == 1), (dx1 == 0), (dx1 == -1)),
                             Or((dy1 == 1), (dy1 == 0), (dy1 == -1)),
 
@@ -172,7 +172,7 @@ def solve_sat(grid_start, size, debug=False):
                 s.assert_and_track(
                     Exists(
                         [dx1, dy1, dx2, dy2],
-                        And(# Different adjacent cells
+                        And(# Different adjacent orthogonal cells
                             Or(And(dx1 == -1, dy1 == 0), And(dx1 == 0, dy1 ==  1),
                                And(dx1 ==  1, dy1 == 0), And(dx1 == 0, dy1 == -1)),
                             Or(And(dx2 == -1, dy2 == 0), And(dx2 == 0, dy2 ==  1),
