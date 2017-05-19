@@ -25,6 +25,10 @@ def solve_sat(grid_start, size, debug=False):
     flow = Function("flow", IntSort(), IntSort(), IntSort())
     s = Solver()
 
+    start_points = [a for couple in grid_start for a in couple]
+    dx1, dy1, dx2, dy2, dx3, dy3, dx4, dy4 = Ints(
+        "dx1, dy1, dx2, dy2, dx3, dy3, dx4, dy4")
+
     ### Grid constraints
     # Defined only inside the grid and values in the right range
     s.add(ForAll([r, c], Implies(And(r >= 0, r < rows,
@@ -39,149 +43,88 @@ def solve_sat(grid_start, size, debug=False):
         s.add(grid(x1, y1) == i)
         s.add(grid(x2, y2) == i)
     # Other constraints
-    # Top
-    s.assert_and_track(
-        ForAll([r, c],
-               Implies(And(r > 0, r < rows, c > 0, c < cols - 1),
-                       Not(And(grid(r, c) == grid(r-1, c-1),
-                               grid(r, c) == grid(r-1, c  ),
-                               grid(r, c) == grid(r-1, c+1))))),
-        "Top")
-    # Top Right
-    s.assert_and_track(
-        ForAll([r, c],
-               Implies(And(r > 0, r < rows, c >= 0, c < cols - 1),
-                       Not(And(grid(r, c) == grid(r-1, c  ),
-                               grid(r, c) == grid(r-1, c+1),
-                               grid(r, c) == grid(r  , c+1))))),
-        "Top Right")
-    # Right
-    s.assert_and_track(
-        ForAll([r, c],
-               Implies(And(r > 0, r < rows - 1, c >= 0, c < cols - 1),
-                       Not(And(grid(r, c) == grid(r-1, c+1),
-                               grid(r, c) == grid(r  , c+1),
-                               grid(r, c) == grid(r+1, c+1))))),
-        "Right")
-    # Bottom Right
+    # There must not be any squares of the same color
+    # Square
     s.assert_and_track(
         ForAll([r, c],
                Implies(And(r >= 0, r < rows - 1, c >= 0, c < cols - 1),
                        Not(And(grid(r, c) == grid(r  , c+1),
                                grid(r, c) == grid(r+1, c+1),
                                grid(r, c) == grid(r+1, c  ))))),
-        "Bottom Right")
-    # Bottom
-    s.assert_and_track(
-        ForAll([r, c],
-               Implies(And(r >= 0, r < rows - 1, c > 0, c < cols - 1),
-                       Not(And(grid(r, c) == grid(r+1, c+1),
-                               grid(r, c) == grid(r+1, c  ),
-                               grid(r, c) == grid(r+1, c-1))))),
-        "Bottom")
-    # Bottom Left
-    s.assert_and_track(
-        ForAll([r, c],
-               Implies(And(r >= 0, r < rows - 1, c > 0, c < cols),
-                       Not(And(grid(r, c) == grid(r+1, c  ),
-                               grid(r, c) == grid(r+1, c-1),
-                               grid(r, c) == grid(r  , c-1))))),
-        "Bottom Left")
-    # Left
-    s.assert_and_track(
-        ForAll([r, c],
-               Implies(And(r > 0, r < rows - 1, c > 0, c < cols),
-                       Not(And(grid(r, c) == grid(r+1, c-1),
-                               grid(r, c) == grid(r  , c-1),
-                               grid(r, c) == grid(r-1, c-1))))),
-        "Left")
-    # Top Left
-    s.assert_and_track(
-        ForAll([r, c],
-               Implies(And(r > 0, r < rows, c > 0, c < cols),
-                       Not(And(grid(r, c) == grid(r  , c-1),
-                               grid(r, c) == grid(r-1, c-1),
-                               grid(r, c) == grid(r-1, c  ))))),
-        "Top Left")
+        "Square")
 
-    start_points = [a for couple in grid_start for a in couple]
     # The number of adjacent (non diagonal) of the same color is exactly 2 for
     # normal cells and exactly 1 for starting points
     for i in range(rows):
         for j in range(cols):
             if (i, j) in start_points:
-                K = 1
+                s.assert_and_track(
+                    Exists(
+                        [dx1, dy1, dx2, dy2, dx3, dy3, dx4, dy4],
+                        And(# Adjacent orthogonal cells
+                            Or(And(dx1 == -1, dy1 == 0), And(dx1 == 0, dy1 ==  1),
+                               And(dx1 ==  1, dy1 == 0), And(dx1 == 0, dy1 == -1)),
+                            Or(And(dx2 == -1, dy2 == 0), And(dx2 == 0, dy2 ==  1),
+                               And(dx2 ==  1, dy2 == 0), And(dx2 == 0, dy2 == -1)),
+                            Or(And(dx3 == -1, dy3 == 0), And(dx3 == 0, dy3 ==  1),
+                               And(dx3 ==  1, dy3 == 0), And(dx3 == 0, dy3 == -1)),
+                            Or(And(dx4 == -1, dy4 == 0), And(dx4 == 0, dy4 ==  1),
+                               And(dx4 ==  1, dy4 == 0), And(dx4 == 0, dy4 == -1)),
+
+                            # Different cells
+                            Or(Not(dx2 == dx3), Not(dy2 == dy3)),
+                            Or(Not(dx3 == dx4), Not(dy3 == dy4)),
+                            Or(Not(dx2 == dx4), Not(dy2 == dy4)),
+                            # One must be inside the grid
+                            And((i + dx1) >= 0, (i + dx1) < rows,
+                                (j + dy1) >= 0, (j + dy1) < cols),
+                            # And of the same color
+                            grid(i + dx1, j + dy1) == grid(i, j),
+                            # Three of a different color
+                            Implies(And((i + dx2) >= 0, (i + dx2) < rows,
+                                        (j + dy2) >= 0, (j + dy2) < cols),
+                                    not(grid(i + dx2, j + dy2) == grid(i, j))),
+                            Implies(And((i + dx3) >= 0, (i + dx3) < rows,
+                                        (j + dy3) >= 0, (j + dy3) < cols),
+                                    not(grid(i + dx3, j + dy3) == grid(i, j))),
+                            Implies(And((i + dx4) >= 0, (i + dx4) < rows,
+                                        (j + dy4) >= 0, (j + dy4) < cols),
+                                    not(grid(i + dx4, j + dy4) == grid(i, j)))
+                            )
+                        ), "count_starting_i_j_{}_{}".format(i, j))
             else:
-                K = 2
-            # 4 directions 4_0
-            if i > 0 and i < rows - 1 and j > 0 and j < cols - 1:
                 s.assert_and_track(
-                    K ==
-                      (  If(grid(i, j) == grid(i-1, j  ), 1, 0)
-                       + If(grid(i, j) == grid(i  , j+1), 1, 0)
-                       + If(grid(i, j) == grid(i+1, j  ), 1, 0)
-                       + If(grid(i, j) == grid(i  , j-1), 1, 0)),
-                    "dir_4_0_K_{}_i_j_{}_{}".format(K, i, j))
-            # 3 directions 3_1
-            if i > 0 and i < rows - 1 and j == 0 and j < cols - 1:
-                s.assert_and_track(
-                    K ==
-                      (  If(grid(i, j) == grid(i-1, j  ), 1, 0)
-                       + If(grid(i, j) == grid(i  , j+1), 1, 0)
-                       + If(grid(i, j) == grid(i+1, j  ), 1, 0)),
-                    "dir_3_1_K_{}_i_j_{}_{}".format(K, i, j))
-            # 3 directions 3_2
-            if i == 0 and i < rows - 1 and j > 0 and j < cols - 1:
-                s.assert_and_track(
-                    K ==
-                      (  If(grid(i, j) == grid(i  , j+1), 1, 0)
-                       + If(grid(i, j) == grid(i+1, j  ), 1, 0)
-                       + If(grid(i, j) == grid(i  , j-1), 1, 0)),
-                    "dir_3_2_K_{}_i_j_{}_{}".format(K, i, j))
-            # 3 directions 3_3
-            if i > 0 and i < rows - 1 and j > 0 and j == cols - 1:
-                s.assert_and_track(
-                    K ==
-                      (  If(grid(i, j) == grid(i+1, j  ), 1, 0)
-                       + If(grid(i, j) == grid(i  , j-1), 1, 0)
-                       + If(grid(i, j) == grid(i-1, j  ), 1, 0)),
-                    "dir_3_3_K_{}_i_j_{}_{}".format(K, i, j))
-            # 3 directions 3_4
-            if i > 0 and i == rows - 1 and j > 0 and j < cols - 1:
-                s.assert_and_track(
-                    K ==
-                      (  If(grid(i, j) == grid(i  , j-1), 1, 0)
-                       + If(grid(i, j) == grid(i-1, j  ), 1, 0)
-                       + If(grid(i, j) == grid(i  , j+1), 1, 0)),
-                    "dir_3_4_K_{}_i_j_{}_{}".format(K, i, j))
-            # 2 directions 2_5
-            if i > 0 and i == rows - 1 and j == 0 and j < cols - 1:
-                s.assert_and_track(
-                    K ==
-                      (  If(grid(i, j) == grid(i-1, j  ), 1, 0)
-                       + If(grid(i, j) == grid(i  , j+1), 1, 0)),
-                    "dir_2_5_K_{}_i_j_{}_{}".format(K, i, j))
-            # 2 directions 2_6
-            if i == 0 and i < rows - 1 and j == 0 and j < cols - 1:
-                s.assert_and_track(
-                    K ==
-                      (  If(grid(i, j) == grid(i  , j+1), 1, 0)
-                       + If(grid(i, j) == grid(i+1, j  ), 1, 0)),
-                    "dir_2_6_K_{}_i_j_{}_{}".format(K, i, j))
-            # 2 directions 2_7
-            if i == 0 and i < rows - 1 and j > 0 and j == cols - 1:
-                s.assert_and_track(
-                    K ==
-                      (  If(grid(i, j) == grid(i+1, j  ), 1, 0)
-                       + If(grid(i, j) == grid(i  , j-1), 1, 0)),
-                    "dir_2_7_K_{}_i_j_{}_{}".format(K, i, j))
-            # 2 directions 2_8
-            if i > 0 and i == rows - 1 and j > 0 and j == cols - 1:
-                s.assert_and_track(
-                    K ==
-                      (  If(grid(i, j) == grid(i  , j-1), 1, 0)
-                       + If(grid(i, j) == grid(i-1, j  ), 1, 0)),
-                    "dir_2_8_K_{}_i_j_{}_{}".format(K, i, j))
+                    Exists([dx1, dy1, dx2, dy2, dx3, dy3, dx4, dy4],
+                    And(# Adjacent orthogonal cells
+                        Or(And(dx1 == -1, dy1 == 0), And(dx1 == 0, dy1 ==  1),
+                           And(dx1 ==  1, dy1 == 0), And(dx1 == 0, dy1 == -1)),
+                        Or(And(dx2 == -1, dy2 == 0), And(dx2 == 0, dy2 ==  1),
+                           And(dx2 ==  1, dy2 == 0), And(dx2 == 0, dy2 == -1)),
+                        Or(And(dx3 == -1, dy3 == 0), And(dx3 == 0, dy3 ==  1),
+                           And(dx3 ==  1, dy3 == 0), And(dx3 == 0, dy3 == -1)),
+                        Or(And(dx4 == -1, dy4 == 0), And(dx4 == 0, dy4 ==  1),
+                           And(dx4 ==  1, dy4 == 0), And(dx4 == 0, dy4 == -1)),
+
+                        # Different cells
+                        Or(Not(dx1 == dx2), Not(dy1 == dy2)),
+                        Or(Not(dx3 == dx4), Not(dy3 == dy4)),
+                        # Two must be inside the grid
+                        And((i + dx1) >= 0, (i + dx1) < rows,
+                            (j + dy1) >= 0, (j + dy1) < cols),
+                        And((i + dx2) >= 0, (i + dx2) < rows,
+                            (j + dy2) >= 0, (j + dy2) < cols),
+                        # And of the same color
+                        grid(i + dx1, j + dy1) == grid(i, j),
+                        grid(i + dx2, j + dy2) == grid(i, j),
+                        # Two of a different color
+                        Implies(And((i + dx3) >= 0, (i + dx3) < rows,
+                                    (j + dy3) >= 0, (j + dy3) < cols),
+                                not(grid(i + dx3, j + dy3) == grid(i, j))),
+                        Implies(And((i + dx4) >= 0, (i + dx4) < rows,
+                                    (j + dy4) >= 0, (j + dy4) < cols),
+                                not(grid(i + dx4, j + dy4) == grid(i, j)))
+                        )
+                    ), "count_normal_i_j_{}_{}".format(i, j))
 
     ### Flow constraints
     # Defined only inside the grid and >= 0 values
@@ -198,7 +141,6 @@ def solve_sat(grid_start, size, debug=False):
 
     # For every cell that is not a starting point there must be two adjacent
     # cells with decreasing and increasing value respectively
-    dx1, dy1, dx2, dy2 = Ints("dx1, dy1, dx2, dy2")
     for i in range(rows):
         for j in range(cols):
             if (i, j) in start_points:
@@ -225,14 +167,12 @@ def solve_sat(grid_start, size, debug=False):
                     Exists(
                         [dx1, dy1, dx2, dy2],
                         And(# Different adjacent cells
-                            Or((dx1 == 1), (dx1 == 0), (dx1 == -1)),
-                            Or((dy1 == 1), (dy1 == 0), (dy1 == -1)),
-                            Or((dx2 == 1), (dx2 == 0), (dx2 == -1)),
-                            Or((dy2 == 1), (dy2 == 0), (dy2 == -1)),
+                            Or(And(dx1 == -1, dy1 == 0), And(dx1 == 0, dy1 ==  1),
+                               And(dx1 ==  1, dy1 == 0), And(dx1 == 0, dy1 == -1)),
+                            Or(And(dx2 == -1, dy2 == 0), And(dx2 == 0, dy2 ==  1),
+                               And(dx2 ==  1, dy2 == 0), And(dx2 == 0, dy2 == -1)),
 
                             Or(Not(dx1 == dx2), Not(dy1 == dy2)),
-                            Or(Not(dx1 == 0), Not(dy1 == 0)),
-                            Or(Not(dx2 == 0), Not(dy2 == 0)),
                             # Inside the grid
                             And((i + dx1) >= 0, (i + dx1) < rows,
                                 (j + dy1) >= 0, (j + dy1) < cols),
